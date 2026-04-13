@@ -1,25 +1,5 @@
 # Componente del spawner: acá guardo lo que saqué del level_01.json
-# y una copia del diccionario de enemigos para que el sistema pueda crear rectángulos.
-
-
-class EnemyTypeDef:
-    def __init__(
-        self,
-        size_x,
-        size_y,
-        color_r,
-        color_g,
-        color_b,
-        velocity_min,
-        velocity_max,
-    ):
-        self.size_x = size_x
-        self.size_y = size_y
-        self.color_r = color_r
-        self.color_g = color_g
-        self.color_b = color_b
-        self.velocity_min = velocity_min
-        self.velocity_max = velocity_max
+# y una copia del diccionario de enemigos (AsteroidEnemyDef / HunterEnemyDef).
 
 
 class EnemySpawnEvent:

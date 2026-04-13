@@ -1,8 +1,69 @@
-# MISW-4407 — Entrega Semana 2 (ECS)
+# MISW-4407 — Introducción al desarrollo de videojuegos (ECS)
+
+## Semana 3 (modo por defecto)
+
+Sobre la semana 2 se añade:
+
+- **Sprites** (`CSurface`): textura PNG y área de colisión/dibujo por fotograma (tira horizontal).
+- **`CAnimation`** + **`system_animation`**: clips con nombre, `start`/`end`, `framerate` (desde JSON).
+- **Jugador y Hunter**: animaciones **MOVE** e **IDLE**; solo **MOVE** cuando hay movimiento.
+- **Hunter** (`CTagHunter` + `CHunterAI` + `system_hunter_ai`): persigue al jugador si está a distancia ≤ `distance_start_chase`; si se aleja más de `distance_start_return` del **origen de spawn**, vuelve a ese punto a `velocity_return` y luego puede volver a perseguir.
+- **Asteroides**: mismos rebotes que antes (sin Hunter en `system_bounce`).
+- **Explosión** (`CTagExplosion`): entidad aparte al destruirse bala–enemigo o jugador–enemigo; animación **EXPLODE** no en bucle; **`system_explosion_cleanup`** la borra al terminar.
+
+### Config y recursos (ZIP *EJ_ECS_03_VERIFICACION*)
+
+- **Por defecto** el motor usa **`src/cfg/`** con los seis JSON en la raíz de esa carpeta: `window.json`, `enemies.json`, `level_01.json`, `player.json`, `bullet.json`, **`explosion.json`**.
+- Las rutas **`image`** en el JSON son relativas a la **raíz del repo** (p. ej. `assets/img/player.png`). Tené esas PNG en **`assets/img/`** o ajustá las rutas en el JSON.
+- Podés usar otra carpeta pasándola a `main.py` (por ejemplo la copia del curso en **`assets/week3_cfg/`**).
+
+### Cómo probar la Semana 3
+
+1. **Entorno** (desde la raíz del proyecto, donde está `main.py`):
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate   # Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+2. **Recursos**: confirmá que existen los PNG referenciados en `src/cfg/*.json` (típicamente bajo **`assets/img/`**). Si falta alguno, pygame puede fallar al cargar texturas.
+
+3. **Ejecutar** con la config por defecto (`src/cfg`):
+
+   ```bash
+   python3 main.py
+   ```
+
+4. **Qué comprobar en pantalla** (checklist rápido):
+
+   - El **jugador** se ve como sprite y las animaciones **IDLE** / **MOVE** cambian al moverte con las flechas.
+   - **Disparo** con clic izquierdo (bala sprite); **límite** `max_bullets` del nivel.
+   - **Asteroides**: movimiento y rebote en bordes.
+   - **Hunter**: te persigue cuando estás cerca; si te alejás del punto donde apareció, vuelve a ese punto y luego puede volver a perseguir.
+   - **Bala + enemigo** o **jugador + enemigo**: aparece una **explosión** (sprite, animación sin bucle) y desaparece al terminar el clip.
+
+5. **Otra carpeta de config** (misma estructura de archivos):
+
+   ```bash
+   python3 main.py assets/week3_cfg
+   ```
+
+### Semana 2 (rectángulos de color)
+
+Seguís pudiendo cargar la verificación semana 2 (cinco JSON por subcarpeta `cfg_XX`):
+
+```bash
+python3 main.py assets/verification_s02/cfg_00
+```
+
+---
+
+## Entrega Semana 2 (referencia)
 
 Proyecto de la **semana 2**: extiende la semana 1 (enemigos con spawn por tiempo, rebote, `window` / `enemies` / `level_01`) con **jugador**, **balas**, **colisiones**, **patrón Command** y configuración ampliada.
 
-**Verificación:** carpetas **`src/cfg/cfg_00`**, **`cfg_01`**, **`cfg_02`** — cada una con los **cinco** JSON. Debe coincidir con pegar el contenido del ZIP del curso (p. ej. *EJ_ECS_02_VERIFICACION* en la web de la materia). Copia adicional en **`assets/verification_s02/`**.
+**Verificación semana 2:** carpetas **`src/cfg/cfg_00`**, **`cfg_01`**, **`cfg_02`** — cada una con los **cinco** JSON. Copia en **`assets/verification_s02/`**.
 
 ---
 
@@ -69,11 +130,11 @@ pip install -r requirements.txt
 
 ## Cómo ejecutar
 
-Por defecto: **`src/cfg/cfg_00`** (semana 2, cinco JSON por carpeta).
-
-```bash
-python3 main.py
-```
+| Modo | Carpeta de config | Comando |
+|------|-------------------|---------|
+| **Semana 3** (sprites, hunter, explosión) | `src/cfg` (seis JSON en la raíz de la carpeta) | `python3 main.py` |
+| Semana 3 (misma estructura, otra ruta) | p. ej. `assets/week3_cfg` | `python3 main.py assets/week3_cfg` |
+| **Semana 2** (rectángulos, cinco JSON por subcarpeta) | `assets/verification_s02/cfg_00` … `cfg_02` | `python3 main.py assets/verification_s02/cfg_00` |
 
 ### Verificación semana 2 (`assets/verification_s02`)
 
@@ -85,13 +146,26 @@ python3 main.py assets/verification_s02/cfg_01
 python3 main.py assets/verification_s02/cfg_02
 ```
 
-### Copia bajo `src/cfg`
+Si tenés la estructura semana 2 bajo `src/cfg` (`cfg_00`, `cfg_01`, …):
 
 ```bash
-python3 main.py src/cfg/cfg_01
+python3 main.py src/cfg/cfg_00
 ```
 
 ## Archivos de configuración (por carpeta)
+
+### Semana 3 (`src/cfg` u otra carpeta plana con los mismos nombres)
+
+| Archivo | Contenido |
+|---------|-----------|
+| `window.json` | Título, tamaño, fondo, framerate |
+| `enemies.json` | Tipos: asteroides con `image` + velocidades; **Hunter** con `image`, `animations`, `velocity_chase`, `velocity_return`, `distance_start_chase`, `distance_start_return` |
+| `level_01.json` | `player_spawn` (posición + `max_bullets`) y `enemy_spawn_events` |
+| `player.json` | Modo sprite: `image`, `number_frames`, `animations` (clips **IDLE** / **MOVE**); `input_velocity` |
+| `bullet.json` | Modo sprite: `image`, `number_frames`, `velocity` |
+| `explosion.json` | Sprite y animación **EXPLODE** (sin bucle) para colisiones bala–enemigo / jugador–enemigo |
+
+### Semana 2 (cinco JSON; sin `explosion.json` ni sprites obligatorios)
 
 | Archivo | Contenido |
 |---------|-----------|
@@ -101,7 +175,7 @@ python3 main.py src/cfg/cfg_01
 | `player.json` | Tamaño, color, `input_velocity` |
 | `bullet.json` | Tamaño, color, `velocity` (rapidez constante del proyectil) |
 
-### Carpetas de ejemplo (semana 2)
+#### Carpetas de ejemplo (semana 2)
 
 | Carpeta | Notas |
 |---------|--------|
@@ -112,10 +186,10 @@ python3 main.py src/cfg/cfg_01
 ## Comportamiento (enunciado)
 
 - El jugador **no sale** de la pantalla (`system_player_bounds`).
-- Los enemigos **rebotan** en los bordes; el jugador **no** usa ese rebote.
+- Los enemigos **rebotan** en los bordes; el jugador **no** usa ese rebote. En semana 3 el rebote aplica a **asteroides**, no al Hunter.
 - Las balas salen del **centro** del jugador hacia el ratón; si salen de la pantalla sin impacto, se eliminan.
-- **Bala + enemigo**: ambos desaparecen.
-- **Jugador + enemigo**: desaparece el **enemigo** (el jugador sigue).
+- **Bala + enemigo**: bala y enemigo desaparecen; en semana 3 aparece **explosión** hasta fin de animación.
+- **Jugador + enemigo**: desaparece el **enemigo** (el jugador sigue); en semana 3 también **explosión**.
 
 ## Estructura relevante
 
@@ -125,13 +199,19 @@ python3 main.py src/cfg/cfg_01
 | `src/engine/config.py` | Carga de todos los JSON |
 | `src/ecs/commands.py` | Patrón Command (`PlayerLeftCommand`, `PlayerFireCommand`, …) |
 | `src/ecs/components/c_input_command.py` | Cola de comandos |
-| `src/ecs/components/c_tags.py` | `CTagPlayer`, `CTagEnemy`, `CTagBullet` |
+| `src/ecs/components/c_tags.py` | `CTagPlayer`, `CTagEnemy`, `CTagBullet`, `CTagHunter`, `CTagExplosion` |
 | `src/ecs/systems/system_input_command.py` | Lee teclado/ratón y encola comandos |
 | `src/ecs/systems/system_execute_commands.py` | Ejecuta comandos: velocidad del jugador y disparo |
 | `src/ecs/systems/system_player_bounds.py` | Límites del jugador |
 | `src/ecs/systems/system_bullet_bounds.py` | Elimina balas fuera de pantalla |
 | `src/ecs/systems/system_collision_bullet_enemy.py` | Colisión bala–enemigo |
 | `src/ecs/systems/system_collision_player_enemy.py` | Colisión jugador–enemigo |
+| `src/ecs/components/c_surface.py`, `c_animation.py` | Sprites y clips (semana 3) |
+| `src/ecs/systems/system_animation.py` | Avanza fotogramas de animación |
+| `src/ecs/systems/system_player_animation.py`, `system_hunter_animation.py` | IDLE / MOVE según movimiento |
+| `src/ecs/systems/system_hunter_ai.py` | IA del Hunter |
+| `src/ecs/systems/system_explosion_cleanup.py` | Elimina explosiones al terminar el clip |
+| `src/ecs/systems/system_draw.py` | Dibuja rectángulos o superficies según componentes |
 
 ## Notas técnicas
 
@@ -141,9 +221,8 @@ Spawn de enemigos y movimiento usan **`delta_time`** del reloj de pygame; no hay
 
 ### Patrón gameloop (`_update`)
 
-Orden actual: input → ejecutar comandos → spawner enemigos → movimiento → límites jugador → rebote enemigos → límites balas → colisiones bala–enemigo → colisión jugador–enemigo.
+Orden actual: input → ejecutar comandos → spawner enemigos → **IA Hunter** → movimiento → límites jugador → rebote enemigos → límites balas → animación (fotogramas) → animación jugador → animación Hunter → colisiones bala–enemigo / jugador–enemigo → limpieza de explosiones.
 
 ### Patrón Command
 
 El sistema de input **no** mueve al jugador directamente: llena `CInputCommand.command_queue` con objetos `Command` que implementan `execute(ctx)`; `system_execute_commands` recorre la cola y aplica movimiento y disparo.
-# introduccion_videjuegos

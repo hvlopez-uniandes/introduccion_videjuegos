@@ -1,8 +1,8 @@
 import esper
 
 from src.ecs.components.c_position import CPosition
-from src.ecs.components.c_size import CSize
-from src.ecs.components.c_tags import CTagEnemy
+from src.ecs.components.c_surface import CSurface
+from src.ecs.components.c_tags import CTagEnemy, CTagHunter
 from src.ecs.components.c_velocity import CVelocity
 
 
@@ -10,10 +10,13 @@ def system_bounce(screen_w, screen_h):
     sw = float(screen_w)
     sh = float(screen_h)
 
-    for _entity, (pos, vel, size, _tag) in esper.get_components(CPosition, CVelocity, CSize, CTagEnemy):
-        # Límite derecho/abajo: si el rectángulo es más grande que la ventana, max queda en 0
-        max_x = max(0.0, sw - float(size.w))
-        max_y = max(0.0, sh - float(size.h))
+    for ent, (pos, vel, surf, _te) in esper.get_components(CPosition, CVelocity, CSurface, CTagEnemy):
+        if esper.try_component(ent, CTagHunter) is not None:
+            continue
+        aw = surf.area_w
+        ah = surf.area_h
+        max_x = max(0.0, sw - aw)
+        max_y = max(0.0, sh - ah)
 
         if pos.x < 0:
             pos.x = 0.0

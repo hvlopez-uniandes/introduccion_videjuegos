@@ -3,12 +3,16 @@ import random
 
 import esper
 
-from src.ecs.components.c_color import CColor
+from src.ecs.components.c_animation import CAnimation
 from src.ecs.components.c_enemy_spawner import CEnemySpawner
+from src.ecs.components.c_hunter_ai import CHunterAI
 from src.ecs.components.c_position import CPosition
-from src.ecs.components.c_size import CSize
-from src.ecs.components.c_tags import CTagEnemy
+from src.ecs.components.c_surface import CSurface
+from src.ecs.components.c_tags import CTagEnemy, CTagHunter
 from src.ecs.components.c_velocity import CVelocity
+from src.engine.enemy_defs import AsteroidEnemyDef, HunterEnemyDef
+import src.engine.paths as engine_paths
+from src.engine.textures import load_texture
 
 
 def system_enemy_spawner(delta_time):
@@ -23,21 +27,48 @@ def system_enemy_spawner(delta_time):
 
             tipo = spawner.enemy_types.get(ev.enemy_type)
             if tipo is None:
-                # tipo raro en el json, lo marco para no volver a intentar
                 ev.fired = True
                 continue
 
-            # velocidad al azar entre min y max, dirección al azar (ángulo)
-            speed = random.uniform(tipo.velocity_min, tipo.velocity_max)
-            angle = random.uniform(0, 2 * math.pi)
-            vx = speed * math.cos(angle)
-            vy = speed * math.sin(angle)
+            root = engine_paths.PROJECT_ROOT
+            if root is None:
+                ev.fired = True
+                continue
 
-            new_enemy = esper.create_entity()
-            esper.add_component(new_enemy, CPosition(ev.pos_x, ev.pos_y))
-            esper.add_component(new_enemy, CVelocity(vx, vy))
-            esper.add_component(new_enemy, CSize(tipo.size_x, tipo.size_y))
-            esper.add_component(new_enemy, CColor(tipo.color_r, tipo.color_g, tipo.color_b))
-            esper.add_component(new_enemy, CTagEnemy())
+            if isinstance(tipo, AsteroidEnemyDef):
+                surf = load_texture(root, tipo.image_path)
+                cs = CSurface(surf, 1)
+                speed = random.uniform(tipo.velocity_min, tipo.velocity_max)
+                angle = random.uniform(0, 2 * math.pi)
+                vx = speed * math.cos(angle)
+                vy = speed * math.sin(angle)
+                e = esper.create_entity()
+                esper.add_component(e, CPosition(ev.pos_x, ev.pos_y))
+                esper.add_component(e, CVelocity(vx, vy))
+                esper.add_component(e, cs)
+                esper.add_component(e, CTagEnemy())
+
+            elif isinstance(tipo, HunterEnemyDef):
+                surf = load_texture(root, tipo.image_path)
+                cs = CSurface(surf, tipo.number_frames)
+                anim = CAnimation(tipo.number_frames, tipo.clips, initial="IDLE")
+                e = esper.create_entity()
+                esper.add_component(e, CPosition(ev.pos_x, ev.pos_y))
+                esper.add_component(e, CVelocity(0.0, 0.0))
+                esper.add_component(e, cs)
+                esper.add_component(e, anim)
+                esper.add_component(e, CTagEnemy())
+                esper.add_component(e, CTagHunter())
+                esper.add_component(
+                    e,
+                    CHunterAI(
+                        ev.pos_x,
+                        ev.pos_y,
+                        tipo.distance_start_chase,
+                        tipo.distance_start_return,
+                        tipo.velocity_chase,
+                        tipo.velocity_return,
+                    ),
+                )
 
             ev.fired = True

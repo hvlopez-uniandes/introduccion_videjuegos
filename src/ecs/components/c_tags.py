@@ -11,3 +11,11 @@ class CTagEnemy:
 
 class CTagBullet:
     pass
+
+
+class CTagHunter:
+    """Enemigo tipo Hunter (IA de persecución / retorno)."""
+
+
+class CTagExplosion:
+    """Entidad temporal de explosión."""
