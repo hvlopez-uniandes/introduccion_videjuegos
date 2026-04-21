@@ -1,5 +1,74 @@
 # MISW-4407 — Introducción al desarrollo de videojuegos (ECS)
 
+## Semana 4 (modo por defecto)
+
+Sobre la semana 3 se añade interfaz con fuentes, audio vía **Service Locator**, pausa y una **habilidad especial** con recarga visible.
+
+### Qué incluye
+
+- **Service Locator** (`src/engine/service_locator.py`, `src/engine/resource_services.py`): servicios **`textures`**, **`sounds`**, **`fonts`** registrados al arrancar el motor; texturas siguen usando el caché interno existente.
+- **`interface.json`**: fuente `.ttf`, texto y color del **título**, **instrucciones** en pantalla, estilo del HUD dinámico del pulso y datos del texto de **pausa** (tamaño/color).
+- **Texto en pantalla**: entidades HUD con `CTagHud` / `CTagHudDynamic`; `CSurface.from_text` para textos fijos y `update_from_text` para el texto que cambia (recarga del pulso).
+- **Pausa**: tecla **P**; con pausa activa no se ejecutan los sistemas de simulación; overlay oscuro y mensaje de pausa (desde `interface.json`).
+- **Sonidos** (rutas relativas a la raíz del repo, típicamente bajo `assets/snd/`):
+  - **`sound`** en `enemies.json` (asteroides y Hunter al aparecer), **`sound_chase`** solo en Hunter (al pasar de idle a perseguir).
+  - **`sound`** en `bullet.json` (al disparar), **`sound`** en `explosion.json` (al crear la entidad explosión en impactos bala–enemigo).
+  - **`sound`** en `player.json` → movimiento del personaje (muestreado para no saturar); **`sound_collision`** → choque jugador–enemigo (la explosión visual en ese caso no dispara el sonido de `explosion.json` para no duplicar).
+- **Habilidad única — pulso escudo**: entrada **ESPACIO** (configurable); ventana de efecto, eliminación de enemigos en radio, **cooldown** con texto numérico y **porcentaje** de recarga; **anillo** alrededor del jugador mientras está activo. Parámetros en **`special.json`** → `shield_pulse`.
+
+### Recursos
+
+- **Imágenes**: `assets/img/` (como en semanas anteriores).
+- **Audio**: `assets/snd/` (p. ej. `laser.ogg`, `explosion.ogg`, `asteroid.ogg`, `ufo.ogg` en el repo de ejemplo).
+- **Fuente**: `assets/fnt/PressStart2P.ttf` (referenciada en `interface.json`).
+
+### Config por defecto (`src/cfg/`)
+
+Ocho JSON en la **raíz** de la carpeta:
+
+| Archivo | Rol |
+|---------|-----|
+| `window.json` | Ventana |
+| `enemies.json` | Tipos de enemigo + **`sound`** / Hunter + **`sound_chase`** |
+| `level_01.json` | Spawn y jugador |
+| `player.json` | Sprite jugador + **`sound`** (movimiento) + **`sound_collision`** |
+| `bullet.json` | Bala + **`sound`** |
+| `explosion.json` | Explosión + **`sound`** |
+| **`interface.json`** | Fuente y textos de UI (título, pausa, ayuda, HUD del pulso) |
+| **`special.json`** | `shield_pulse`: `duration_sec`, `cooldown_sec`, `radius_px`, `activation_key` (p. ej. `SPACE`) |
+
+### Cómo probar la Semana 4
+
+1. Instalación como arriba (`venv` + `pip install -r requirements.txt`).
+2. Ejecutar: `python3 main.py` (carga `src/cfg/` por defecto).
+3. Comprobar:
+   - **Título** e **instrucciones** visibles.
+   - **P**: pausa y texto; **P** otra vez reanuda.
+   - **Sonidos** al spawn, disparo, explosiones, chase del Hunter, movimiento y choque jugador–enemigo.
+   - **ESPACIO**: pulso escudo; línea de estado con recarga; anillo durante el efecto; tras cooldown vuelve a **LISTO**.
+
+### Entrega (curso)
+
+- Publicar el juego en **itch.io** (web o descargable).
+- Incluir en el ZIP un **`README.txt`** con el **enlace** al juego. En el repo hay una plantilla en la raíz: reemplazá la URL por la definitiva antes de entregar.
+
+Recursos oficiales del curso (referencia): [recursos semana 4](https://misw-4407-desarrollo-de-videojuegos.github.io/web-cohorte-2026-12/).
+
+### Rúbrica Semana 4 (resumen)
+
+| Dimensión | Peso | Dónde se nota en el proyecto |
+|-----------|------|------------------------------|
+| Funcionamiento básico | 10% | `GameEngine`, pygame, bucle estable |
+| Sprites y sonidos | 10% | JSON + `TextureService` / `SoundService` |
+| Texto y fuentes | 10% | `interface.json`, `FontService`, HUD |
+| Pausa | 10% | **P**, `game_state.paused`, overlay |
+| Service Locator | 20% | Registro y uso de los tres servicios |
+| Característica única | 20% | Pulso escudo + HUD + anillo + `special.json` |
+| itch.io | 20% | `README.txt` + publicación (lo completás vos) |
+
+---
+
+
 ## Semana 3 (modo por defecto)
 
 Sobre la semana 2 se añade:
@@ -13,7 +82,7 @@ Sobre la semana 2 se añade:
 
 ### Config y recursos (ZIP *EJ_ECS_03_VERIFICACION*)
 
-- **Por defecto** el motor usa **`src/cfg/`** con los seis JSON en la raíz de esa carpeta: `window.json`, `enemies.json`, `level_01.json`, `player.json`, `bullet.json`, **`explosion.json`**.
+- **Por defecto** el motor usa **`src/cfg/`**. Semana 3 mínimo: seis JSON (`window`, `enemies`, `level_01`, `player`, `bullet`, `explosion`). **Semana 4** suma **`interface.json`** y **`special.json`** (ocho archivos en total en la raíz de `src/cfg/`).
 - Las rutas **`image`** en el JSON son relativas a la **raíz del repo** (p. ej. `assets/img/player.png`). Tené esas PNG en **`assets/img/`** o ajustá las rutas en el JSON.
 - Podés usar otra carpeta pasándola a `main.py` (por ejemplo la copia del curso en **`assets/week3_cfg/`**).
 
@@ -90,6 +159,7 @@ Proyecto de la **semana 2**: extiende la semana 1 (enemigos con spawn por tiempo
 | Colisión **jugador–enemigo** | `system_collision_player_enemy` |
 | Colisión **bala–enemigo** | `system_collision_bullet_enemy` |
 | JSON solo fuera de sistemas de juego principal | Carga en `src/engine/config.py` y `GameEngine._create()`. |
+| **Service Locator**, sonidos, UI (sem. 4) | `ServiceLocator` + `TextureService` / `SoundService` / `FontService`; HUD y escudo en sistemas dedicados |
 
 ---
 
@@ -110,8 +180,10 @@ Proyecto de la **semana 2**: extiende la semana 1 (enemigos con spawn por tiempo
 
 ## Controles
 
-- **Flechas**: mover el rectángulo del jugador (velocidad `input_velocity` en `player.json`, píxeles por segundo; diagonal normalizada).
-- **Clic izquierdo**: disparar bala desde el **centro** del jugador hacia el puntero (velocidad constante `velocity` en `bullet.json`). Respeta `max_bullets` del nivel.
+- **Flechas**: mover al jugador (`input_velocity` en `player.json`; diagonal normalizada).
+- **Clic izquierdo**: disparar desde el centro del jugador hacia el puntero (`velocity` en `bullet.json`); respeta `max_bullets` del nivel.
+- **P**: pausar / reanudar (sem. 4).
+- **Espacio** (o la tecla definida en `special.json`): **pulso escudo** cuando el HUD indique que está listo (sem. 4).
 
 ## Requisitos
 
@@ -132,8 +204,8 @@ pip install -r requirements.txt
 
 | Modo | Carpeta de config | Comando |
 |------|-------------------|---------|
-| **Semana 3** (sprites, hunter, explosión) | `src/cfg` (seis JSON en la raíz de la carpeta) | `python3 main.py` |
-| Semana 3 (misma estructura, otra ruta) | p. ej. `assets/week3_cfg` | `python3 main.py assets/week3_cfg` |
+| **Semana 4** (por defecto: UI, sonido, pausa, pulso escudo) | `src/cfg` (**ocho** JSON en la raíz; ver tabla Semana 4) | `python3 main.py` |
+| Solo assets semana 3 (6 JSON, sin `interface` / `special`) | cualquier carpeta con esa estructura | `python3 main.py <ruta>` — si faltan `interface.json` o `special.json`, el motor usa **valores por defecto** para UI y escudo |
 | **Semana 2** (rectángulos, cinco JSON por subcarpeta) | `assets/verification_s02/cfg_00` … `cfg_02` | `python3 main.py assets/verification_s02/cfg_00` |
 
 ### Verificación semana 2 (`assets/verification_s02`)
@@ -165,6 +237,15 @@ python3 main.py src/cfg/cfg_00
 | `bullet.json` | Modo sprite: `image`, `number_frames`, `velocity` |
 | `explosion.json` | Sprite y animación **EXPLODE** (sin bucle) para colisiones bala–enemigo / jugador–enemigo |
 
+### Semana 4 (misma carpeta `src/cfg`; archivos extra)
+
+| Archivo | Contenido |
+|---------|-----------|
+| `interface.json` | `font` (.ttf), bloques `title`, `pause`, `instructions`, `shield_status` (texto, `size`, `color` RGB, `position` donde aplica) |
+| `special.json` | `shield_pulse`: duración del efecto, cooldown, radio en px, `activation_key` (`SPACE`, `Q`, etc.) |
+
+Campos de audio opcionales en JSON de semana 3: **`sound`** en `player`, `bullet`, `explosion`, entradas de `enemies`; **`sound_collision`** en `player`; **`sound_chase`** en Hunter dentro de `enemies.json`.
+
 ### Semana 2 (cinco JSON; sin `explosion.json` ni sprites obligatorios)
 
 | Archivo | Contenido |
@@ -190,16 +271,21 @@ python3 main.py src/cfg/cfg_00
 - Las balas salen del **centro** del jugador hacia el ratón; si salen de la pantalla sin impacto, se eliminan.
 - **Bala + enemigo**: bala y enemigo desaparecen; en semana 3 aparece **explosión** hasta fin de animación.
 - **Jugador + enemigo**: desaparece el **enemigo** (el jugador sigue); en semana 3 también **explosión**.
+- **Semana 4**: con **pausa**, el estado del juego no avanza; el **pulso escudo** elimina enemigos en radio durante la ventana configurada y luego entra en recarga.
 
 ## Estructura relevante
 
 | Ruta | Descripción |
 |------|-------------|
-| `src/engine/game_engine.py` | Gameloop y orden de sistemas |
-| `src/engine/config.py` | Carga de todos los JSON |
+| `src/engine/game_engine.py` | Gameloop, eventos (P, pulso), registro del Service Locator, creación de HUD |
+| `src/engine/service_locator.py`, `resource_services.py` | Patrón Service Locator (texturas, sonido, fuentes) |
+| `src/engine/audio_util.py` | Reproducción de sonidos vía locator |
+| `src/engine/game_state.py`, `frame_input.py` | Pausa y petición de habilidad especial |
+| `src/engine/config.py` | Carga de todos los JSON (incl. `interface.json`, `special.json`) |
 | `src/ecs/commands.py` | Patrón Command (`PlayerLeftCommand`, `PlayerFireCommand`, …) |
 | `src/ecs/components/c_input_command.py` | Cola de comandos |
-| `src/ecs/components/c_tags.py` | `CTagPlayer`, `CTagEnemy`, `CTagBullet`, `CTagHunter`, `CTagExplosion` |
+| `src/ecs/components/c_tags.py` | `CTagPlayer`, `CTagEnemy`, `CTagBullet`, `CTagHunter`, `CTagExplosion`, `CTagHud`, `CTagHudDynamic` |
+| `src/ecs/components/c_player_sfx.py`, `c_shield_special.py`, `c_ui_text_style.py` | Audio del jugador, pulso escudo, estilo de texto dinámico |
 | `src/ecs/systems/system_input_command.py` | Lee teclado/ratón y encola comandos |
 | `src/ecs/systems/system_execute_commands.py` | Ejecuta comandos: velocidad del jugador y disparo |
 | `src/ecs/systems/system_player_bounds.py` | Límites del jugador |
@@ -211,7 +297,10 @@ python3 main.py src/cfg/cfg_00
 | `src/ecs/systems/system_player_animation.py`, `system_hunter_animation.py` | IDLE / MOVE según movimiento |
 | `src/ecs/systems/system_hunter_ai.py` | IA del Hunter |
 | `src/ecs/systems/system_explosion_cleanup.py` | Elimina explosiones al terminar el clip |
-| `src/ecs/systems/system_draw.py` | Dibuja rectángulos o superficies según componentes |
+| `src/ecs/systems/system_draw.py` | Mundo + capa HUD al final |
+| `src/ecs/systems/system_draw_shield_ring.py` | Anillo del pulso escudo |
+| `src/ecs/systems/system_shield_pulse.py`, `system_shield_hud_refresh.py` | Lógica del especial y texto de recarga |
+| `src/ecs/systems/system_player_move_sound.py` | Sonido de movimiento (throttle) |
 
 ## Notas técnicas
 
@@ -221,7 +310,7 @@ Spawn de enemigos y movimiento usan **`delta_time`** del reloj de pygame; no hay
 
 ### Patrón gameloop (`_update`)
 
-Orden actual: input → ejecutar comandos → spawner enemigos → **IA Hunter** → movimiento → límites jugador → rebote enemigos → límites balas → animación (fotogramas) → animación jugador → animación Hunter → colisiones bala–enemigo / jugador–enemigo → limpieza de explosiones.
+Orden actual (sin pausa): input → ejecutar comandos → spawner enemigos → **IA Hunter** → movimiento → límites jugador → rebote enemigos → límites balas → animación (fotogramas) → animación jugador → animación Hunter → **pulso escudo** → colisiones bala–enemigo / jugador–enemigo → limpieza de explosiones → **sonido movimiento jugador** → **HUD recarga escudo**. Con **pausa**, este bloque no se ejecuta; el dibujo y el overlay de pausa sí.
 
 ### Patrón Command
 

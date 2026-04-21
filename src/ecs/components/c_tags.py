@@ -1,6 +1,3 @@
-# Etiquetas para distinguir jugador, balas y enemigos en los sistemas.
-
-
 class CTagPlayer:
     pass
 
@@ -19,3 +16,11 @@ class CTagHunter:
 
 class CTagExplosion:
     """Entidad temporal de explosión."""
+
+
+class CTagHud:
+    """Texto de interfaz estático (título, ayuda)."""
+
+
+class CTagHudDynamic:
+    """Texto de interfaz que se regenera por frame (p. ej. cooldown)."""

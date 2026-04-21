@@ -2,10 +2,11 @@
 
 
 class AsteroidEnemyDef:
-    def __init__(self, image_path, velocity_min, velocity_max):
+    def __init__(self, image_path, velocity_min, velocity_max, sound_path=None):
         self.image_path = image_path
         self.velocity_min = float(velocity_min)
         self.velocity_max = float(velocity_max)
+        self.sound_path = sound_path or ""
 
 
 class HunterEnemyDef:
@@ -18,6 +19,8 @@ class HunterEnemyDef:
         velocity_return,
         distance_start_chase,
         distance_start_return,
+        sound_path=None,
+        sound_chase_path=None,
     ):
         self.image_path = image_path
         self.number_frames = int(number_frames)
@@ -26,3 +29,5 @@ class HunterEnemyDef:
         self.velocity_return = float(velocity_return)
         self.distance_start_chase = float(distance_start_chase)
         self.distance_start_return = float(distance_start_return)
+        self.sound_path = sound_path or ""
+        self.sound_chase_path = sound_chase_path or ""

@@ -15,7 +15,8 @@ from src.ecs.components.c_surface import CSurface
 from src.ecs.components.c_tags import CTagBullet, CTagPlayer
 from src.ecs.components.c_velocity import CVelocity
 import src.engine.paths as engine_paths
-from src.engine.textures import load_texture
+from src.engine.audio_util import play_sound
+from src.engine.service_locator import ServiceLocator
 
 
 def system_execute_commands():
@@ -65,7 +66,7 @@ def system_execute_commands():
                 bvx = fdx * bullet_def.velocity
                 bvy = fdy * bullet_def.velocity
                 if bullet_def.is_sprite():
-                    bsurf = load_texture(root, bullet_def.image_path)
+                    bsurf = ServiceLocator.current().get("textures").load(bullet_def.image_path)
                     bcs = CSurface(bsurf, bullet_def.num_frames)
                     bw = bcs.area_w
                     bh = bcs.area_h
@@ -84,6 +85,8 @@ def system_execute_commands():
                     esper.add_component(be, CColor(bullet_def.r, bullet_def.g, bullet_def.b))
                 esper.add_component(be, CTagBullet())
                 n_bullets += 1
+                if bullet_def.sound_path:
+                    play_sound(bullet_def.sound_path, 0.55)
 
     for _ent, (inp, vel, pos, size, speed, _tp) in esper.get_components(
         CInputCommand,
@@ -125,3 +128,5 @@ def system_execute_commands():
                 esper.add_component(be, CColor(bullet_def.r, bullet_def.g, bullet_def.b))
                 esper.add_component(be, CTagBullet())
                 n_bullets += 1
+                if bullet_def.sound_path:
+                    play_sound(bullet_def.sound_path, 0.55)

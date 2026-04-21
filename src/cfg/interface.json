@@ -1,0 +1,25 @@
+{
+    "font": "assets/fnt/PressStart2P.ttf",
+    "title": {
+        "text": "MISW-4407 — ECS Shooter",
+        "size": 12,
+        "color": { "r": 255, "g": 210, "b": 64 },
+        "position": { "x": 8, "y": 4 }
+    },
+    "pause": {
+        "text": "PAUSA",
+        "size": 26,
+        "color": { "r": 255, "g": 90, "b": 90 }
+    },
+    "instructions": {
+        "text": "Flechas mover | Clic disparar | P pausa | ESP pulso escudo",
+        "size": 8,
+        "color": { "r": 190, "g": 200, "b": 220 },
+        "position": { "x": 6, "y": 332 }
+    },
+    "shield_status": {
+        "size": 9,
+        "color": { "r": 110, "g": 230, "b": 255 },
+        "position": { "x": 6, "y": 312 }
+    }
+}

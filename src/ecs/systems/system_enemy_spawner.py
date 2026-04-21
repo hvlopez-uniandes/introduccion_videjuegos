@@ -12,7 +12,8 @@ from src.ecs.components.c_tags import CTagEnemy, CTagHunter
 from src.ecs.components.c_velocity import CVelocity
 from src.engine.enemy_defs import AsteroidEnemyDef, HunterEnemyDef
 import src.engine.paths as engine_paths
-from src.engine.textures import load_texture
+from src.engine.audio_util import play_sound
+from src.engine.service_locator import ServiceLocator
 
 
 def system_enemy_spawner(delta_time):
@@ -36,7 +37,7 @@ def system_enemy_spawner(delta_time):
                 continue
 
             if isinstance(tipo, AsteroidEnemyDef):
-                surf = load_texture(root, tipo.image_path)
+                surf = ServiceLocator.current().get("textures").load(tipo.image_path)
                 cs = CSurface(surf, 1)
                 speed = random.uniform(tipo.velocity_min, tipo.velocity_max)
                 angle = random.uniform(0, 2 * math.pi)
@@ -47,9 +48,11 @@ def system_enemy_spawner(delta_time):
                 esper.add_component(e, CVelocity(vx, vy))
                 esper.add_component(e, cs)
                 esper.add_component(e, CTagEnemy())
+                if tipo.sound_path:
+                    play_sound(tipo.sound_path, 0.5)
 
             elif isinstance(tipo, HunterEnemyDef):
-                surf = load_texture(root, tipo.image_path)
+                surf = ServiceLocator.current().get("textures").load(tipo.image_path)
                 cs = CSurface(surf, tipo.number_frames)
                 anim = CAnimation(tipo.number_frames, tipo.clips, initial="IDLE")
                 e = esper.create_entity()
@@ -68,7 +71,10 @@ def system_enemy_spawner(delta_time):
                         tipo.distance_start_return,
                         tipo.velocity_chase,
                         tipo.velocity_return,
+                        tipo.sound_chase_path,
                     ),
                 )
+                if tipo.sound_path:
+                    play_sound(tipo.sound_path, 0.45)
 
             ev.fired = True

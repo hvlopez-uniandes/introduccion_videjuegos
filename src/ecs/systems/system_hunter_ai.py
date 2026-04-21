@@ -6,6 +6,7 @@ from src.ecs.components.c_hunter_ai import CHunterAI
 from src.ecs.components.c_position import CPosition
 from src.ecs.components.c_tags import CTagHunter, CTagPlayer
 from src.ecs.components.c_velocity import CVelocity
+from src.engine.audio_util import play_sound
 
 
 def system_hunter_ai():
@@ -15,6 +16,7 @@ def system_hunter_ai():
     _, (ppos, _tp) = players[0]
 
     for _ent, (pos, vel, ai, _th) in esper.get_components(CPosition, CVelocity, CHunterAI, CTagHunter):
+        prev_state = ai.state
         dx_p = ppos.x - pos.x
         dy_p = ppos.y - pos.y
         dist_p = math.hypot(dx_p, dy_p)
@@ -48,3 +50,5 @@ def system_hunter_ai():
             vel.vy = 0.0
             if dist_p <= ai.chase_dist:
                 ai.state = "chase"
+        if prev_state == "idle" and ai.state == "chase" and ai.sound_chase_path:
+            play_sound(ai.sound_chase_path, 0.75)
