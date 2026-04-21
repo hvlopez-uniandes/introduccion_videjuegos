@@ -4,9 +4,22 @@
 
 Sobre la semana 3 se añade interfaz con fuentes, audio vía **Service Locator**, pausa y una **habilidad especial** con recarga visible.
 
+### Patrón Service Locator
+
+Es un **registro central de servicios**: un solo objeto (`ServiceLocator`) conoce las implementaciones concretas de “cómo cargar recursos”. Los sistemas y utilidades **no** abren archivos de imagen/audio/fuente a pelo con rutas globales sueltas: piden el servicio por nombre y llaman a su API. Así el curso pide **localizar** carga de sonidos, imágenes y texto/fuentes en un solo patrón.
+
+| Pieza | Archivo | Rol |
+|--------|---------|-----|
+| Registro | `src/engine/service_locator.py` | `ServiceLocator.register(name, service)`, `ServiceLocator.bind(locator)` (instancia global), `ServiceLocator.current().get("…")` |
+| Implementaciones | `src/engine/resource_services.py` | **`TextureService`**: `load(ruta_relativa)` → `pygame.Surface` (usa el caché de `textures.py`). **`SoundService`**: `load(ruta)` → `pygame.mixer.Sound` con caché. **`FontService`**: `get(ruta_ttf, tamaño_px)` → `pygame.font.Font` con caché por (ruta, tamaño). |
+| Arranque | `GameEngine._bind_services()` en `game_engine.py` | Tras `pygame.init()` / `mixer`, se crea el `ServiceLocator`, se registran los tres servicios con la **raíz del proyecto**, y se llama a `ServiceLocator.bind(...)`. |
+| Uso típico | Sistemas / helpers | `ServiceLocator.current().get("textures").load("assets/img/...")`, `.get("sounds").load("assets/snd/...")`, `.get("fonts").get("assets/fnt/....ttf", 12)`. Reproducción cómoda: `src/engine/audio_util.py` → `play_sound(ruta, volumen)` por debajo usa el **SoundService**. |
+
+**Dónde se usa en este proyecto (referencia rápida):** spawner y disparo cargan **texturas** vía `TextureService`; explosiones idem; HUD del escudo pide **fuente** al `FontService` para `font.render` / `CSurface.update_from_text`; todos los **`.ogg`** pasan por `SoundService` (directo o vía `play_sound`). No hace falta pasar el `ServiceLocator` a cada sistema: la instancia global enlazada al inicio basta para cumplir el patrón en un juego pequeño.
+
 ### Qué incluye
 
-- **Service Locator** (`src/engine/service_locator.py`, `src/engine/resource_services.py`): servicios **`textures`**, **`sounds`**, **`fonts`** registrados al arrancar el motor; texturas siguen usando el caché interno existente.
+- **Service Locator**: ver subsección anterior; archivos `service_locator.py` y `resource_services.py`.
 - **`interface.json`**: fuente `.ttf`, texto y color del **título**, **instrucciones** en pantalla, estilo del HUD dinámico del pulso y datos del texto de **pausa** (tamaño/color).
 - **Texto en pantalla**: entidades HUD con `CTagHud` / `CTagHudDynamic`; `CSurface.from_text` para textos fijos y `update_from_text` para el texto que cambia (recarga del pulso).
 - **Pausa**: tecla **P**; con pausa activa no se ejecutan los sistemas de simulación; overlay oscuro y mensaje de pausa (desde `interface.json`).
@@ -42,6 +55,7 @@ Ocho JSON en la **raíz** de la carpeta:
 1. Instalación como arriba (`venv` + `pip install -r requirements.txt`).
 2. Ejecutar: `python3 main.py` (carga `src/cfg/` por defecto).
 3. Comprobar:
+   - **Service Locator**: al arrancar no hay error de servicios no inicializados; imágenes, `.ogg` y `.ttf` cargan (si falta un archivo, fallará la ruta concreta, no el registro).
    - **Título** e **instrucciones** visibles.
    - **P**: pausa y texto; **P** otra vez reanuda.
    - **Sonidos** al spawn, disparo, explosiones, chase del Hunter, movimiento y choque jugador–enemigo.
@@ -315,3 +329,7 @@ Orden actual (sin pausa): input → ejecutar comandos → spawner enemigos → *
 ### Patrón Command
 
 El sistema de input **no** mueve al jugador directamente: llena `CInputCommand.command_queue` con objetos `Command` que implementan `execute(ctx)`; `system_execute_commands` recorre la cola y aplica movimiento y disparo.
+
+### Service Locator (sem. 4)
+
+El motor **no** debe usar `ServiceLocator.current()` antes de `GameEngine._bind_services()`. El orden en `_create` es: `pygame.init()` → `mixer` → **`_bind_services()`** → carga de configs y entidades. Detalle del patrón y tabla de servicios: sección **Patrón Service Locator** arriba (Semana 4).

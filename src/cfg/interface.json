@@ -1,7 +1,7 @@
 {
     "font": "assets/fnt/PressStart2P.ttf",
     "title": {
-        "text": "MISW-4407 — ECS Shooter",
+        "text": "introduccion videojuegos",
         "size": 12,
         "color": { "r": 255, "g": 210, "b": 64 },
         "position": { "x": 8, "y": 4 }
